@@ -1,0 +1,51 @@
+version: '3.7'
+
+# docker network create --subnet 164.30.0.0/24 local_thesis_network
+# be sure that variables at .env and here have the same value
+
+networks:
+  default:
+    external:
+      name: local_thesis_network
+
+services:
+  postgres:
+      image: postgres:latest
+      restart: unless-stopped
+      container_name: thesis_postgres
+      tty: true
+      working_dir: /app
+      ports:
+        - "5432:5432"
+      volumes:
+        - db_data:/var/lib/postgresql/data
+        - ./dockers/postgres/create_postgres_db.sql:/docker-entrypoint-initdb.d/create_postgres_db.sql:ro
+#        - ./dockers/postgres/create_postgres_db.sh:/app/create_postgres_db.sh
+      environment:
+        POSTGRES_PASSWORD: admin
+      networks:
+        default:
+          ipv4_address: 164.30.0.8
+
+  thesis_python:
+    build:
+      context: ./
+      dockerfile: ./dockers/api/Dockerfile
+    container_name: thesis_python
+#    restart: unless-stopped
+#    command: uvicorn main:app --reload --host 172.30.0.10 --log-config=./api/core/logging_config.json
+#    command: bash -c "cd api/ && alembic upgrade head && cd ../ &&  python main.py"
+    working_dir: /app
+    depends_on:
+      - postgres
+    volumes:
+      - ./src/:/app
+      - ./requirements.txt:/requirements.txt
+    ports:
+      - "8000:8000" # PORT
+    networks:
+      default:
+        ipv4_address: 164.30.0.10
+
+volumes:
+  db_data:
