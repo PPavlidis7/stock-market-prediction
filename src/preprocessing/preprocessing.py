@@ -20,42 +20,52 @@ timesteps_step = 1
 
 retrain_subsets = {}
 
-dates = list(pd.bdate_range(start='1991-04-01', end='2002-12-30').strftime('%Y-%m-%d'))
+dates = list(pd.bdate_range(start='1991-01-01', end='2002-12-30').strftime('%Y-%m-%d'))
 retrain_dates = calc_retrain_dates(dates=dates, start='1991-06-28', end='2001-06-28', retrain_window=retrain_window)
 
 
 def main():
     for _date in retrain_dates:
         retrain_date = dt.datetime.strptime(_date, '%Y-%m-%d')
-        with open('tickers.txt', 'r') as f:
+        with open('../resources/tickers.txt', 'r') as f:
             retrain_tickers = f.read().split()
 
         retrain_date_index = dates.index(_date)
 
-        start = dates[retrain_date_index - 5 * n_timesteps - 5 * prediction_window - sample_days]
-        start_2 = dates[retrain_date_index - 5 * n_timesteps - 5 * prediction_window - sample_days - 39]
+        start = dates[retrain_date_index - n_timesteps - 5 * prediction_window - sample_days]
+        start_2 = dates[retrain_date_index - n_timesteps - 5 * prediction_window - sample_days - 39]
 
         end = dates[retrain_date_index + 5 * retrain_window + 5 * prediction_window]
         end_2 = dates[retrain_date_index + 5 * retrain_window + 5 * prediction_window + 10]
 
-        # datasets = {ticker: pd.read_csv(f'../resources/datasets/{ticker}', index_col=0).loc[start_2:end_2] for ticker in
-        #             retrain_tickers}
+        counter= 0
+        unused_ticker = []
         datasets = {}
         for ticker in retrain_tickers:
-            datasets[ ticker] = pd.read_csv(f'../resources/datasets/{ticker}', index_col=0).loc[start_2:end_2]
+            _data = pd.read_csv(f'../resources/datasets_2/{ticker}', index_col=0)
+            filtered_data = _data.loc[start_2:end_2]
+            if not filtered_data.empty:
+                datasets[ticker] = _data
+            else:
+                counter += 1
+                unused_ticker.append(ticker)
+        if counter:
+            print(_date)
+            print(counter, unused_ticker)
+            print("-"*100)
 
         features_datasets, labels = build_features_datasets(datasets=datasets)
         features_datasets = {ticker: features_dataset.loc[start:end] for ticker, features_dataset in
                              features_datasets.items()}
         labels = labels.loc[start:end]
 
-        known_features_datasets = {ticker: features_datasets[ticker].loc[:retrain_date] for ticker in
+        known_features_datasets = {ticker: features_datasets[ticker].loc[:_date] for ticker in
                                    features_datasets.keys()}
-        unknown_features_datasets = {ticker: features_datasets[ticker].loc[retrain_date:].iloc[1:] for ticker in
+        unknown_features_datasets = {ticker: features_datasets[ticker].loc[_date:].iloc[1:] for ticker in
                                      features_datasets.keys()}
 
-        known_labels = labels.loc[:retrain_date]
-        unknown_labels = labels.loc[retrain_date:].iloc[1:]
+        known_labels = labels.loc[:_date]
+        unknown_labels = labels.loc[_date:].iloc[1:]
 
         features_datasets_scalers = fit_features_datasets_scalers(features_datasets=known_features_datasets)
         labels_scaler = fit_labels_scaler(labels=known_labels)
@@ -76,7 +86,7 @@ def main():
         retrain_subset = calc_retrain_subset(
             features_datasets=merged_features_datasets,
             labels=merged_labels,
-            retrain_date=retrain_date,
+            retrain_date=_date,
             sample_days=sample_days,
             retrain_window=retrain_window,
             prediction_window=prediction_window,
@@ -91,7 +101,7 @@ def main():
         y_true = labels.iloc[true_start:true_end]
         y_true.columns = retrain_tickers
 
-        retrain_subsets[retrain_date] = {
+        retrain_subsets[_date] = {
             'X_train': X_train,
             'y_train': y_train,
             'y_true': y_true,
@@ -99,11 +109,7 @@ def main():
             'labels_scaler': labels_scaler
         }
 
-        print(retrain_date, len(retrain_tickers))
-
-        # break
-
-    with open('S5-T8', 'wb') as f:
+    with open(f'../resources/S{sample_days}-T{n_timesteps}', 'wb') as f:
         pickle.dump(retrain_subsets, f)
 
 
