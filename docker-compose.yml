@@ -10,7 +10,7 @@ networks:
 
 services:
   postgres:
-      image: postgres:latest
+      image: postgres:41.1
       restart: unless-stopped
       container_name: thesis_postgres
       tty: true

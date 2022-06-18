@@ -9,7 +9,7 @@ from transformations import calc_assets_returns
 
 def write_tickers_date(us_close_prices):
     for ticker, data in us_close_prices.items():
-        if len(data) > 100:
+        if len(data) > 90:
             data.to_csv(f'../resources/datasets_2/{ticker}')
 
 
@@ -27,14 +27,13 @@ def main():
     write_tickers_date(us_datasets)
 
     us_close_prices = pd.DataFrame(
-        data={ticker: us_datasets[ticker]['ClosePrice'] for ticker in us_datasets.keys()},
+        data={ticker: us_datasets[ticker]['ClosePrice'] for ticker in us_datasets.keys() if
+              len(us_datasets[ticker]) > 90},
         dtype=float
     ).dropna(how='all', axis=1)
 
-    returns = calc_assets_returns(close_prices=us_close_prices)
-
     with open('../resources/tickers.txt', 'w') as f:
-        f.write("\n".join(list(returns.columns)))
+        f.write("\n".join(list(us_close_prices.columns)))
 
 
 if __name__ == '__main__':
