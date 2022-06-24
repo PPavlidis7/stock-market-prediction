@@ -1,0 +1,18 @@
+{
+    "retrain_window": 8,
+    "prediction_window": 4,
+    "sample_days": 5,
+    "features": 16,
+    "retrain_start": "2007-12-28",
+    "retrain_end": "2011-12-30",
+    "rebalance_start": "2007-12-31",
+    "rebalance_end": "2011-12-25",
+    "benchmark": "GSPC",
+    "model_grids": {
+            "l": [1,2,3],
+            "n": [2, 4, 8, 16, 32, 64, 128, 256],
+            "t": [8],
+            "loss": ["mse", "huber"],
+            "d": [0.0, 0.2, 0.4]
+    }
+}
