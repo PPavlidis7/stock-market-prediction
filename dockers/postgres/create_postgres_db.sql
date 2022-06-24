@@ -34,7 +34,7 @@ CREATE TABLE public.training_metrics (
     mae_std double precision,
     huber_std double precision,
     mape_std double precision,
-    created_at timestamp without time zone
+    created_at timestamp with time zone DEFAULT now(),
 );
 
 
