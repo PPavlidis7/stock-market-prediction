@@ -42,8 +42,13 @@ def main(retrain_date, retrain_subsets):
     end = dates[retrain_date_index + 5 * retrain_window + 5 * prediction_window]
     end_2 = dates[retrain_date_index + 5 * retrain_window + 5 * prediction_window + 10]
 
-    datasets = {ticker: pd.read_csv(f'../resources/datasets_2/{ticker}', index_col=0).loc[start_2:end_2] for ticker in
-                retrain_tickers}
+    datasets = {}
+    for ticker in retrain_tickers:
+        try:
+            datasets[ticker] = pd.read_csv(f'../resources/datasets_2/{ticker}', index_col=0).loc[start_2:end_2]
+        except:
+            print(ticker)
+
 
     features_datasets, labels = build_features_datasets(datasets=datasets)
     features_datasets = {ticker: features_dataset.loc[start:end] for ticker, features_dataset in
@@ -110,8 +115,12 @@ def run_parallel():
         retrain_subsets = dict(d)
         print(retrain_subsets)
 
-    with open(f'../resources/S{sample_days}-T{n_timesteps}', 'wb') as f:
-        pickle.dump(retrain_subsets, f)
+    sum = []
+    for key, value in retrain_subsets.items(): sum += (value['size'])
+    print(len(set(sum)))
+    x = 1
+    # with open(f'../resources/S{sample_days}-T{n_timesteps}', 'wb') as f:
+    #     pickle.dump(retrain_subsets, f)
 
 
 if __name__ == '__main__':

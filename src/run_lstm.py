@@ -25,9 +25,6 @@ _BENCHMARK_TO_COUNTRY = {
     'ΓΔ': 'gr'
 }
 
-training_metrics_dal = TrainingMetricsDAL(db_session=get_session())
-
-
 def generate_grid_combinations(grid: dict[str, list]) -> list[dict]:
     hyperparameter, values = zip(*grid.items())
 
@@ -42,6 +39,7 @@ def _validate_config_name(config_name: str) -> str:
 
 
 def train_model(model_grid_point, _features, _sample_days, backtester, training_metrics_schemas_list):
+    training_metrics_dal = TrainingMetricsDAL(db_session=get_session())
     features = _features[0]
     sample_days = _sample_days[0]
     model = build_model(
@@ -73,6 +71,7 @@ def train_model(model_grid_point, _features, _sample_days, backtester, training_
         training_metrics=aggregate_metrics(metrics=metrics))
 
     training_metrics_schemas_list.append(training_metrics_schema)
+    training_metrics_dal.create(new_training_metrics=training_metrics_schema)
 
 
 def main():
@@ -110,11 +109,6 @@ def main():
                     repeat(training_metrics_schemas_list)
                 )
             )
-
-        training_metrics_schemas_list = list(training_metrics_schemas_list)
-
-    for training_metrics_schema in training_metrics_schemas_list:
-        training_metrics_dal.create(new_training_metrics=training_metrics_schema)
 
 
 if __name__ == '__main__':
