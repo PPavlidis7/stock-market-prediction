@@ -10,6 +10,7 @@ Base = declarative_base()
 
 class LossFunction(enum.Enum):
     mse = 'mse'
+    mae = 'mae'
     huber = 'huber'
 
 

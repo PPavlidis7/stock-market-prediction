@@ -5,6 +5,7 @@ from pydantic import BaseModel
 
 class LossFunction(str, Enum):
     mse = 'mse'
+    mae = 'mae'
     huber = 'huber'
 
 
@@ -45,6 +46,7 @@ def build_training_metrics_schema(
 ) -> TrainingMetricsCreate:
     loss_functions = {
         'mse': LossFunction.mse,
+        'mae': LossFunction.mae,
         'huber': LossFunction.huber
     }
 
@@ -61,4 +63,5 @@ def build_training_metrics_schema(
         mse_std = training_metrics['aggregate_stds']['mse'],
         mae_std = training_metrics['aggregate_stds']['mae'],
         huber_std = training_metrics['aggregate_stds']['huber'],
-        mape_std = training_metrics['aggregate_stds']['mape'])
+        mape_std = training_metrics['aggregate_stds']['mape']
+    )

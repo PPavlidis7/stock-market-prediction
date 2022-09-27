@@ -9,6 +9,7 @@ from tensorflow.keras.layers import (
 from tensorflow.keras.optimizers import Adam
 from tensorflow.keras.losses import (
     MeanSquaredError,
+    MeanAbsoluteError,
     Huber
 )
 from tensorflow.random import set_seed
@@ -20,6 +21,7 @@ _METRICS = ['mse', 'mae', 'mape']
 _OPTIMIZER = Adam()
 _LOSSES = {
     'mse': MeanSquaredError(),
+    'mae': MeanAbsoluteError(),
     'huber': Huber()
 }
 
